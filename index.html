@@ -123,7 +123,7 @@ async function ask() {
     chat.scrollTop = chat.scrollHeight;
 
     try {
-        const res = await fetch("https://ai-sql-assistant.onrender.com/ask?q=" + encodeURIComponent(question));
+        const res = await fetch("https://ai-sql-assistant.vercel.app/ask?q=" + encodeURIComponent(question))
         const data = await res.json();
 
         document.getElementById(loadingId).innerHTML = `
