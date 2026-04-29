@@ -125,7 +125,7 @@ async function ask() {
     chat.scrollTop = chat.scrollHeight;
 
     try {
-        const res = await fetch(`http://127.0.0.1:8000/ask?q=${encodeURIComponent(q)}`);
+        const res = await fetch("https://ai-sql-assistant.onrender.com/ask?q=" + encodeURIComponent(query))
         const data = await res.json();
 
         document.getElementById(id).innerHTML = `
