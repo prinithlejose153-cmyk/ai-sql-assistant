@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AI SQL Assistant</title>
 
   <style>
@@ -101,6 +102,15 @@
       padding: 5px 10px;
       border-radius: 6px;
       font-size: 12px;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+
+    code {
+      color: #00ffcc;
+      display: block;
+      margin-top: 5px;
     }
 
     @keyframes fadeIn {
@@ -138,17 +148,15 @@
   }
 
   async function ask() {
-    const queryInput = document.getElementById("query");
-    const query = queryInput.value.trim();
+    const input = document.getElementById("query");
+    const query = input.value.trim();
     if (!query) return;
 
     // Show user message
     chat.innerHTML += `<div class="message user">${query}</div>`;
+    input.value = "";
 
-    // Clear input
-    queryInput.value = "";
-
-    // Loading message
+    // Loading
     const id = Date.now();
     chat.innerHTML += `<div id="${id}" class="message ai">⏳ Thinking...</div>`;
     chat.scrollTop = chat.scrollHeight;
@@ -160,16 +168,22 @@
 
       const data = await res.json();
 
-      // Format result
+      // ✅ FINAL FIX — clean result
       const formattedResult = Array.isArray(data.result)
-        ? data.result.flat().join(", ")
+        ? data.result.flat(Infinity).join(", ")
         : data.result;
 
-      // Replace loading message
+      // Replace loading with result
       document.getElementById(id).innerHTML = `
-        <b>SQL:</b><br>${data.sql}<br><br>
-        <b>Result:</b><br>${formattedResult}<br>
-        <button class="copy-btn" onclick="copySQL('${data.sql}')">Copy SQL</button>
+        <b>SQL:</b>
+        <code>${data.sql}</code>
+
+        <b>Result:</b>
+        <div style="font-size:18px; font-weight:bold; color:#2ecc71;">
+          ${formattedResult}
+        </div>
+
+        <button class="copy-btn" onclick="copySQL(\`${data.sql}\`)">Copy SQL</button>
       `;
 
     } catch (err) {
