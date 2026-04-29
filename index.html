@@ -1,141 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>AI SQL Assistant</title>
+  <meta charset="UTF-8" />
+  <title>AI SQL Assistant</title>
 
-<style>
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1e3c47, #2c5364);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+    }
 
-/* Glass card */
-.container {
-    width: 600px;
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(15px);
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 0 40px rgba(0,0,0,0.4);
-}
+    .container {
+      width: 600px;
+      background: rgba(255,255,255,0.08);
+      padding: 30px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
 
-h1 {
-    text-align: center;
-}
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-/* Chat area */
-.chat {
-    height: 350px;
-    overflow-y: auto;
-    margin-bottom: 15px;
-}
+    .chat {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+      padding-right: 5px;
+    }
 
-/* Messages */
-.message {
-    margin: 10px 0;
-    padding: 12px;
-    border-radius: 10px;
-}
+    .message {
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      animation: fadeIn 0.3s ease;
+    }
 
-.user {
-    background: #22c55e;
-    text-align: right;
-    color: black;
-}
+    .user {
+      background: #2ecc71;
+      color: black;
+      text-align: right;
+    }
 
-.ai {
-    background: rgba(255,255,255,0.1);
-}
+    .ai {
+      background: rgba(255,255,255,0.1);
+    }
 
-/* Input area */
-.input-area {
-    display: flex;
-    gap: 10px;
-}
+    input {
+      width: 75%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+    }
 
-input {
-    flex: 1;
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    outline: none;
-}
+    button {
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: none;
+      margin-left: 10px;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
 
-button {
-    background: linear-gradient(135deg, #00f260, #0575e6);
-    border: none;
-    padding: 12px 20px;
-    border-radius: 10px;
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
-}
+    button:hover {
+      transform: scale(1.05);
+    }
 
-button:hover {
-    transform: scale(1.05);
-}
+    .examples {
+      margin-top: 10px;
+      font-size: 13px;
+      opacity: 0.8;
+    }
 
-/* Loading */
-.loading {
-    opacity: 0.7;
-    font-style: italic;
-}
-</style>
+    .examples span {
+      margin-right: 10px;
+      cursor: pointer;
+      color: #00c6ff;
+    }
+
+    .examples span:hover {
+      text-decoration: underline;
+    }
+
+    .copy-btn {
+      margin-top: 10px;
+      background: #444;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
 </head>
 
 <body>
 
 <div class="container">
-    <h1>AI SQL Assistant 🤖</h1>
+  <h1>AI SQL Assistant 🤖</h1>
 
-    <div id="chat" class="chat"></div>
+  <div id="chat" class="chat"></div>
 
-    <div class="input-area">
-        <input id="query" placeholder="Ask your database..." />
-        <button onclick="ask()">Send</button>
-    </div>
+  <div>
+    <input id="query" placeholder="Ask your database..." />
+    <button onclick="ask()">Send</button>
+  </div>
+
+  <div class="examples">
+    Try:
+    <span onclick="askExample('total revenue')">Total Revenue</span>
+    <span onclick="askExample('which customer has highest revenue')">Top Customer</span>
+  </div>
 </div>
 
 <script>
-const chat = document.getElementById("chat");
+  const chat = document.getElementById("chat");
 
-async function ask() {
-    const input = document.getElementById("query");
-    const question = input.value;
+  function askExample(text) {
+    document.getElementById("query").value = text;
+    ask();
+  }
 
-    if (!question) return;
+  async function ask() {
+    const queryInput = document.getElementById("query");
+    const query = queryInput.value.trim();
+    if (!query) return;
 
     // Show user message
-    chat.innerHTML += `<div class="message user">${question}</div>`;
+    chat.innerHTML += `<div class="message user">${query}</div>`;
 
-    input.value = "";
+    // Clear input
+    queryInput.value = "";
 
     // Loading message
-    const loadingId = Date.now();
-    chat.innerHTML += `<div id="${loadingId}" class="message ai loading">Thinking...</div>`;
+    const id = Date.now();
+    chat.innerHTML += `<div id="${id}" class="message ai">⏳ Thinking...</div>`;
     chat.scrollTop = chat.scrollHeight;
 
     try {
-        const res = await fetch("https://ai-sql-assistant-z6xw.onrender.com/ask?q=" + encodeURIComponent(query))
-        const data = await res.json();
+      const res = await fetch(
+        "https://ai-sql-assistant-z6xw.onrender.com/ask?q=" + encodeURIComponent(query)
+      );
 
-        document.getElementById(loadingId).innerHTML = `
-            <b>SQL:</b><br>${data.sql}<br><br>
-            <b>Result:</b><br>${JSON.stringify(data.result, null, 2)}
-        `;
+      const data = await res.json();
+
+      // Format result
+      const formattedResult = Array.isArray(data.result)
+        ? data.result.flat().join(", ")
+        : data.result;
+
+      // Replace loading message
+      document.getElementById(id).innerHTML = `
+        <b>SQL:</b><br>${data.sql}<br><br>
+        <b>Result:</b><br>${formattedResult}<br>
+        <button class="copy-btn" onclick="copySQL('${data.sql}')">Copy SQL</button>
+      `;
+
     } catch (err) {
-        document.getElementById(loadingId).innerHTML = "❌ Error connecting to backend";
+      document.getElementById(id).innerHTML = "❌ Error connecting to backend";
     }
 
     chat.scrollTop = chat.scrollHeight;
-}
+  }
+
+  function copySQL(sql) {
+    navigator.clipboard.writeText(sql);
+    alert("SQL copied!");
+  }
 </script>
 
 </body>
