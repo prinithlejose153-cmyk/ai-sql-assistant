@@ -8,10 +8,11 @@ from app.services.nl_to_sql import convert_to_sql
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # allow frontend
+    allow_origins=["*"],  # allow all (safe for demo)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
 )
 
 # ✅ DB PATH
