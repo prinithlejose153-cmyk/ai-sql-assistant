@@ -1,3 +1,4 @@
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Query
 import sqlite3
 import os
@@ -5,6 +6,13 @@ import os
 from app.services.nl_to_sql import convert_to_sql
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # allow frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ✅ DB PATH
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

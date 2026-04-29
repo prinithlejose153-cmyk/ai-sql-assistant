@@ -1,66 +1,33 @@
-import os
-import google.generativeai as genai
-
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+import re
 
 def convert_to_sql(question: str) -> str:
-    try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+    q = question.lower()
 
-        prompt = f"""
-You are an expert SQL generator.
+    # 🔥 remove punctuation
+    q = re.sub(r"[^\w\s]", "", q)
 
-Database:
-Table: sales
-Columns: id, customer_name, product, revenue
+    # 💡 INTENT DETECTION
 
-Rules:
-- ONLY return SQL
-- NO explanation
-- NO text
-- Only valid SQLite queries
-
-Examples:
-
-Q: which customer has highest revenue
-A: SELECT customer_name FROM sales ORDER BY revenue DESC LIMIT 1;
-
-Q: total revenue
-A: SELECT SUM(revenue) FROM sales;
-
-Q: which person made the most money
-A: SELECT customer_name FROM sales ORDER BY revenue DESC LIMIT 1;
-
-Now convert:
-
-Q: {question}
-A:
-"""
-
-        response = model.generate_content(prompt)
-
-        # 🔥 SAFE EXTRACTION
-        if hasattr(response, "text") and response.text:
-            sql = response.text.strip()
-        else:
-            sql = ""
-
-        # 🔥 CLEAN FORMATTING
-        sql = sql.replace("```sql", "").replace("```", "").strip()
-
-        # 🔥 VALIDATE OUTPUT
-        if not sql or "select" not in sql.lower():
-            raise ValueError("Invalid SQL generated")
-
-        return sql
-
-    except Exception as e:
-        print("AI ERROR:", e)
-
-        # 🔥 FALLBACK (NEVER FAIL)
-        if "total" in question.lower():
-            return "SELECT SUM(revenue) FROM sales;"
-        elif "highest" in question.lower() or "most" in question.lower():
+    # 1. Highest revenue
+    if any(word in q for word in ["highest", "top", "most", "max"]):
+        if any(word in q for word in ["customer", "person", "who"]):
             return "SELECT customer_name FROM sales ORDER BY revenue DESC LIMIT 1;"
-        else:
-            return "SELECT * FROM sales;"
+
+    # 2. Total revenue
+    if "total" in q or "sum" in q:
+        return "SELECT SUM(revenue) FROM sales;"
+
+    # 3. Show all data
+    if any(word in q for word in ["all", "show", "list"]):
+        return "SELECT * FROM sales;"
+
+    # 4. Revenue by customer
+    if "revenue" in q and "customer" in q:
+        return "SELECT customer_name, SUM(revenue) FROM sales GROUP BY customer_name;"
+
+    # 5. Product queries
+    if "product" in q:
+        return "SELECT * FROM sales;"
+
+    # ❌ fallback
+    return None
